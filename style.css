@@ -11,3 +11,6 @@ Text Domain: joshtheme
 Tags:  Beautiful theme
 */
 
+body {
+    color: red;
+}

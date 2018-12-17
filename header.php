@@ -1,8 +1,12 @@
 <html>
     <head>
         <?php wp_head(); ?>
+        <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'>
     </head>
-    <body>
+    <body <?php body_class() ?>>
         <header>
-            <p>This is the header</p>
+            <?php wp_nav_menu(array(
+                'theme_location'=>'primary'
+            ))?>
+
         </header>
