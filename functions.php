@@ -32,6 +32,11 @@ function setup_josh_theme() {
 add_action('init','setup_josh_theme');
 
 
+function my_function( $atts ) {
+    return true;
+}
+add_shortcode( 'sample', 'my_function' );
+
 
 
 
@@ -42,22 +47,131 @@ add_action('init','setup_josh_theme');
 
 
 // these are the necessary functions for daily_reports
-show_admin_bar( false );
+show_admin_bar( true );
 
-add_action('admin_post_nopriv_daily_morning_report', 'process_report_not_logged_in');
+add_filter( 'login_redirect', function( $url, $query, $user ) {
+	return home_url();
+}, 10, 3 );
+
+function redirect_away_from_protected_pages() {
+    $obj_id = get_queried_object_id();
+    $current_url = get_permalink( $obj_id );
+    // make sure I know what query WP is using for home
+    $home = get_home_url() . '/';
+    $form = $home . 'form-page/';
+    $login = $home . 'wp-login/';
+
+    if(!is_user_logged_in()){
+        // thesse are my protected pages
+        if($current_url === $form){
+            wp_redirect($login);
+            exit();
+        }
+    }
+}
+
+add_action('wp_head','redirect_away_from_protected_pages');
 
 function process_report_not_logged_in() {
     wp_redirect(get_home_url() . '/wp-login');
-    echo '<h1> Please Log In Before Submitting a Report';
     exit();
 }
+
+//evening report
+
+add_action('admin_post_nopriv_daily_evening_report', 'process_report_not_logged_in');
+
+add_action('admin_post_daily_evening_report','process_daily_evening_report');
+
+function process_daily_evening_report() {
+
+    function create_report_daily_evening() {
+    // This works to create a table but not so well for other operations (when a variable is involved)
+    // because it is hard to put the variable properly in quotes inside of the sql statement
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 'report_daily_evening';
+
+        $sql = "CREATE TABLE $table_name (
+            id int(9) AUTO_INCREMENT,
+            user_id INT(6),
+            date DATE,
+            length VARCHAR(20),
+            light_offering VARCHAR(20),
+            mandala_offering int(6),
+            seven_line_prayer int(6),
+            guru_yoga VARCHAR(20),
+            dzogchen_meditation varchar(20),
+            dharmapala_offering varchar(20),
+            aspiration_master_and_disciples varchar(20),
+            expelling_obstacles varchar(20),
+            aspiration_root_and_lineage_masters varchar(20),
+            aspiration_sugatas_and_progeny varchar(20),
+            concluding_practice varchar(20),
+            full_prostrations int(6),
+            sleeping_yoga varchar(20),
+            UNIQUE KEY id (id)
+        ) $charset_collate;";
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+        dbDelta( $sql );
+    }
+
+    function insert_to_report_daily_evening() {
+        // this works to insert/delete/update where $arg is my data variable
+        global $wpdb;
+        $table = $wpdb->prefix.'report_daily_evening';
+        $data = array(
+            'user_id' => get_current_user_id( ),
+            'date' => $_POST['date'],
+            'length' => $_POST['length'],
+            'light_offering'=> $_POST['light_offering'],
+            'mandala_offering'=> $_POST['mandala_offering'],
+            'seven_line_prayer'=> $_POST['seven_line_prayer'],
+            'guru_yoga'=> $_POST['guru_yoga'],
+            'dzogchen_meditation'=> $_POST['dzogchen_meditation'],
+            'dharmapala_offering'=> $_POST['dharmapala_offering'],
+            'aspiration_master_and_disciples'=> $_POST['aspiration_master_and_disciples'],
+            'expelling_obstacles'=> $_POST['expelling_obstacles'],
+            'aspiration_root_and_lineage_masters'=> $_POST['aspiration_root_and_lineage_masters'],
+            'aspiration_sugatas_and_progeny'=> $_POST['aspiration_sugatas_and_progeny'],
+            'concluding_practice'=> $_POST['concluding_practice'],
+            'full_prostrations'=> $_POST['full_prostrations'],
+            'sleeping_yoga'=> $_POST['sleeping_yoga'],
+        );
+        $format = array('%d','%s','%s','%s','%d','%d','%s','%s','%s','%s','%s','%s','%s','%s','%d','%s');
+        $wpdb->insert($table,$data,$format);
+        //echo '0 for error or id of inserted item here: ' . $my_id = $wpdb->insert_id;
+    }
+
+    //if I want to see what the form posted
+    function print_out_submission(){
+        foreach ($_POST as $key => $value){
+            echo 'foreach of $_POST: ' . $key . ' ' . $value . '<br>';
+        }
+    }
+
+    // sql will automatically not create if table already exists
+    create_report_daily_evening();
+    
+    // this triggers after submit is pressed, once there is a value then page reload will also trigger,
+    // until visiting another page
+    if (isset($_POST['date'])) {    
+        insert_to_report_daily_evening();
+        //print_out_submission();
+    }
+
+    wp_redirect(get_home_url());
+    exit();
+
+}
+
+
+//morning-report
+add_action('admin_post_nopriv_daily_morning_report', 'process_report_not_logged_in');
 
 add_action('admin_post_daily_morning_report','process_daily_morning_report');
 
 function process_daily_morning_report() {
-        
-   
-    
 
     function create_report_daily_morning() {
     // This works to create a table but not so well for other operations (when a variable is involved)
@@ -124,16 +238,6 @@ function process_daily_morning_report() {
         }
     }
 
-    // not necessary, sql won't create the table if it exists
-    function create_table_if_needed() {
-        $table_name = $wpdb->prefix . 'report_daily_morning';
-        if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-            create_report_daily_morning();
-        } else {
-            echo 'false';
-        }
-    }
-
     // sql will automatically not create if table already exists
     create_report_daily_morning();
     
@@ -149,7 +253,4 @@ function process_daily_morning_report() {
 
 }
 
-add_filter( 'login_redirect', function( $url, $query, $user ) {
-	return home_url();
-}, 10, 3 );
 ?>
