@@ -15,8 +15,6 @@ $beggining_of_month = $full_year . '-' . $two_digit_month . '-' . '01';
 $end_of_month = $full_year . '-' . $two_digit_month . '-' . $days_in_month;
 $todays_date = $full_year . '-' . $two_digit_month . '-' . $date;
 
-echo 'here: ' . $todays_date;
-
 $month_names = Array(
     'January',
     'February',
