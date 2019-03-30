@@ -1,6 +1,6 @@
 
 <?php
-get_header();
+get_header(); // this comes from header.php
 wp_mail( 'joshchafield@gmail.com', 'hello there', 'this is my email message', '', array() );
 ?>
 
